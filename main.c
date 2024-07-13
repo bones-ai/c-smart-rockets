@@ -34,7 +34,7 @@
 #define WINDOW_W 1400
 #define WINDOW_H 900
 #define SIM_FPS 120
-#define NUM_ROCKETS 5000
+#define NUM_ROCKETS 1000
 #define MAX_FRAMES 250
 #define MUTATION_PROBABILITY 0.1f
 #define MUTATION_MAGNITUDE 0.1f
@@ -120,7 +120,7 @@ Vector2 rotatePoint(Vector2 *point, const Vector2 *center, float angle);
 
 Rocket createRocket(void);
 void rocketApplyForce(Rocket *r, Vector2 *force);
-float getFitness(const Rocket *r, int frameIdx);
+float getFitness(const Rocket *r);
 void updateRocket(Rocket *r, Obstacle obstacles[], size_t numObstacles, int frameIdx);
 void drawRocket(const Rocket *r);
 Rocket crossover(const Rocket *first, const Rocket *second);
@@ -224,7 +224,7 @@ void rocketApplyForce(Rocket *r, Vector2* force)
 // This isn't a perfect fitness function
 // It fails when there's a obstacle just before the target
 // A flood fill algorithm would yield better results
-float getFitness(const Rocket *r, int frameIdx)
+float getFitness(const Rocket *r)
 {
     float distToTarget = getDistanceSquared(&r->pos, &TARGET_LOC);
     return 1.0f / fmaxf(distToTarget, 1.0f);
@@ -238,9 +238,6 @@ void updateRocket(Rocket *r, Obstacle obstacles[], size_t numObstacles, int fram
     {
         return;
     }
-
-    // Update fitness
-    r->fitness = getFitness(r, frameIdx);
 
     // Obstacle Collision
     for (int i = 0; i < numObstacles; i ++)
@@ -366,6 +363,7 @@ GenePool createGenePool(Sim *sim)
     float totalFitness = 0.0f;
     for (int i = 0; i < NUM_ROCKETS; i++)
     {
+        sim->agents[i].fitness = getFitness(&sim->agents[i]);
         totalFitness += sim->agents[i].fitness;
     }
     for (int i = 0; i < NUM_ROCKETS; i++)
